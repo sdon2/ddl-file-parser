@@ -47,7 +47,7 @@ class DDLFileParser
     protected function getSchema($headers, $fields)
     {
         $schema = [];
-        
+
         foreach ($fields as $field) {
             $schema[$field] = stripos($headers, $field);
         }
@@ -58,7 +58,7 @@ class DDLFileParser
     protected function getTable($content)
     {
         $matches = [];
-        if (preg_match("/^CLAIM.+?ERRORS.*(\d+\).*?)=/ms",  $content, $matches)) {
+        if (preg_match("/^CLAIM.+?ERRORS.*?(\d+\).*?)=/ms",  $content, $matches)) {
             return array_pop($matches);
         }
         return null;
@@ -67,18 +67,24 @@ class DDLFileParser
     protected function parseData($fields, $schema, $table)
     {
         $result = [];
-        foreach ($fields as $index => $field) {
-            $start_pos = $schema[$field];
-            $end_pos = -1;
-            $length = -1;
-            if ($index < count($fields) - 1) {
-                $next_field = $fields[$index + 1];
-                $end_pos = $schema[$next_field] - 1;
-                $length = $end_pos - $start_pos;
+
+        foreach (explode("\r\n", rtrim($table)) as $line) {
+            $data = [];
+            foreach ($fields as $index => $field) {
+                $start_pos = $schema[$field];
+                $end_pos = -1;
+                $length = -1;
+                if ($index < count($fields) - 1) {
+                    $next_field = $fields[$index + 1];
+                    $end_pos = $schema[$next_field] - 1;
+                    $length = $end_pos - $start_pos;
+                }
+                $extracted = substr($line, $start_pos, $length);
+                $data[$field] = rtrim($extracted);
             }
-            $extracted = substr($table, $start_pos, $length);
-            $result[$field] = rtrim($extracted);
+            array_push($result, $data);
         }
+
         return $result;
     }
 }
