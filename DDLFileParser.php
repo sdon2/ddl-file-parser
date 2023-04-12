@@ -68,7 +68,9 @@ class DDLFileParser
     {
         $result = [];
 
-        foreach (explode("\r\n", rtrim($table)) as $line) {
+        $table = str_replace("\r\n", "\n", rtrim($table));
+
+        foreach (explode("\n", $table) as $line) {
             $data = [];
             foreach ($fields as $index => $field) {
                 $start_pos = $schema[$field];
